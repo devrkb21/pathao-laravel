@@ -17,10 +17,16 @@ class PathaoWebhookController extends Controller
      */
     public function handle(Request $request)
     {
-        $signature = $request->header('X-Pathao-Signature');
         $expectedSecret = config('pathao.pathao_secret_token');
         $payload = $request->all();
+        $signature = $request->header('X-Pathao-Signature');
+        
         $signatureValid = (! empty($signature) && ! empty($expectedSecret) && $signature === $expectedSecret);
+        $isIntegrationEvent = isset($payload['event']) && $payload['event'] === 'webhook_integration';
+        
+        // Pathao often sends this secret in the incoming header, otherwise fallback to config
+        $integrationSecretHeader = $request->header('X-Pathao-Merchant-Webhook-Integration-Secret') 
+            ?: config('pathao.webhook_integration_secret');
 
         // Log incoming webhook to DB
         try {
@@ -29,12 +35,19 @@ class PathaoWebhookController extends Controller
                 'consignment_id' => $payload['consignment_id'] ?? null,
                 'merchant_order_id' => $payload['merchant_order_id'] ?? null,
                 'payload' => json_encode($payload),
-                'signature_valid' => $signatureValid,
+                'signature_valid' => $isIntegrationEvent ? true : $signatureValid,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         } catch (\Exception $e) {
             // Silence logging exceptions
+        }
+
+        if ($isIntegrationEvent) {
+            return response()->json([
+                'status' => 202,
+                'message' => 'Webhook integration successful',
+            ], 202)->header('X-Pathao-Merchant-Webhook-Integration-Secret', $integrationSecretHeader);
         }
 
         if (! $signatureValid) {
@@ -51,6 +64,6 @@ class PathaoWebhookController extends Controller
             'status' => 202,
             'message' => 'Webhook received successfully',
             'data' => null,
-        ], 202)->header('X-Pathao-Merchant-Webhook-Integration-Secret', $expectedSecret);
+        ], 202)->header('X-Pathao-Merchant-Webhook-Integration-Secret', $integrationSecretHeader);
     }
 }

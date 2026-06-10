@@ -54,6 +54,7 @@ Add the following to your `.env` file:
 PATHAO_CLIENT_ID=
 PATHAO_CLIENT_SECRET=
 PATHAO_SECRET_TOKEN=
+PATHAO_WEBHOOK_INTEGRATION_SECRET=
 PATHAO_SANDBOX=false
 PATHAO_DB_TABLE_NAME=pathao-courier
 ```
@@ -165,6 +166,8 @@ The package automatically registers a webhook endpoint at:
 ```
 POST /api/pathao/webhook
 ```
+
+**Webhook Verification**: To verify your webhook URL on Pathao's merchant dashboard, the package automatically captures the required challenge token UUID and echoes it back in the `X-Pathao-Merchant-Webhook-Integration-Secret` header. If necessary, you can manually set this UUID in your `.env` file as `PATHAO_WEBHOOK_INTEGRATION_SECRET`.
 
 **Signature Validation**: Incoming requests are validated against `X-Pathao-Signature` header using your `PATHAO_SECRET_TOKEN`.
 
