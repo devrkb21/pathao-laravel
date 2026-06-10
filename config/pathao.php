@@ -53,6 +53,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Pathao Webhook Integration Secret
+    |--------------------------------------------------------------------------
+    |
+    | Provide the exact UUID provided by Pathao Dashboard for webhook integration.
+    | You can find it on the developer api page during webhook setup.
+    |
+    */
+    'webhook_integration_secret' => env('PATHAO_WEBHOOK_INTEGRATION_SECRET', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Pathao Sandbox Mode
     |--------------------------------------------------------------------------
     |
